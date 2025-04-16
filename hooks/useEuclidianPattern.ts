@@ -4,24 +4,16 @@ import {
   getEuclidianPattern,
   rotatePattern,
   formatPattern,
-  getValueAtIndexWrapped,
 } from "@/lib/euclidian";
 
 const useEuclidianPattern = () => {
   const [steps, setSteps] = useState(16);
   const [hits, setHits] = useState(4);
   const [rotation, setRotation] = useState(0);
-  const [index, setIndex] = useState(0);
 
   const pattern = getEuclidianPattern(hits, steps);
   const patternWithRotation = rotatePattern(pattern, rotation);
   const patternWithRotationFormatted = formatPattern(patternWithRotation);
-
-  const currentValue = getValueAtIndexWrapped<number>(
-    patternWithRotation,
-    index
-  );
-  const currentValueFormatted = formatPattern([currentValue]);
 
   const handleStepsChange = (nextSteps: string | number) => {
     const int =
@@ -58,27 +50,16 @@ const useEuclidianPattern = () => {
     }
   };
 
-  const handleIndexChange = (nextIndex: string | number) => {
-    const int =
-      typeof nextIndex === "string" ? parseInt(nextIndex, 10) : nextIndex;
-
-    setIndex(int ?? 0);
-  };
-
   return {
     steps,
     hits,
     rotation,
-    index,
     pattern,
     patternWithRotation,
     patternWithRotationFormatted,
-    currentValue,
-    currentValueFormatted,
     handleStepsChange,
     handleHitsChange,
     handleRotationChange,
-    handleIndexChange,
   };
 };
 
