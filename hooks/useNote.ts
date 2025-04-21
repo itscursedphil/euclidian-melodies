@@ -1,8 +1,14 @@
 import { useState } from "react";
 
-const useNote = () => {
-  const [note, setNote] = useState(0);
-  const [octave, setOctave] = useState(0);
+const useNote = ({
+  initialNote = 0,
+  initialOctave = 0,
+}: {
+  initialNote?: number;
+  initialOctave?: number;
+}) => {
+  const [note, setNote] = useState(initialNote);
+  const [octave, setOctave] = useState(initialOctave);
 
   const handleNoteChange = (nextNote: string | number) => {
     const int =

@@ -6,10 +6,18 @@ import {
   formatPattern,
 } from "@/lib/euclidian";
 
-const useEuclidianPattern = () => {
-  const [steps, setSteps] = useState(16);
-  const [hits, setHits] = useState(4);
-  const [rotation, setRotation] = useState(0);
+const useEuclidianPattern = ({
+  initialSteps = 16,
+  initialHits = 4,
+  initialRotation = 0,
+}: {
+  initialSteps?: number;
+  initialHits?: number;
+  initialRotation?: number;
+}) => {
+  const [steps, setSteps] = useState(initialSteps);
+  const [hits, setHits] = useState(initialHits);
+  const [rotation, setRotation] = useState(initialRotation);
 
   const pattern = getEuclidianPattern(hits, steps);
   const patternWithRotation = rotatePattern(pattern, rotation);
