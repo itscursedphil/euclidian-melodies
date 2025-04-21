@@ -1,3 +1,6 @@
+import useEuclidianPattern from "@/hooks/useEuclidianPattern";
+import useNote from "@/hooks/useNote";
+
 export const noteNames = [
   "C",
   "C#",
@@ -180,20 +183,47 @@ export const scales = {
   },
 };
 
+export const getNoteName = (note: number) => noteNames[note % 12];
+
+// TODO: write tests for this function
 export const findNearestNoteInScale = (
   note: number,
   notesInScale: number[]
 ) => {
-  const noteInScale = notesInScale.find((n) => n === note);
+  const octave = Math.floor(note / 12);
+  const noteInOctave = note % 12;
+  const noteInScale = notesInScale.find((n) => n === noteInOctave);
 
   if (noteInScale !== undefined) {
-    return noteInScale;
+    return noteInScale + octave * 12;
   }
 
-  const extendedNotesInScale = [...notesInScale, notesInScale[0] + 12];
-  const distances = extendedNotesInScale.map((n) => Math.abs(n - note));
+  const distances = notesInScale.map((n) => Math.abs(n - noteInOctave));
   const minDistance = Math.min(...distances);
   const nearestNoteIndex = distances.indexOf(minDistance);
 
-  return extendedNotesInScale[nearestNoteIndex];
+  return notesInScale[nearestNoteIndex] + octave * 12;
 };
+
+export const getSequence = (
+  patterns: ReturnType<typeof useEuclidianPattern>[],
+  notes: ReturnType<typeof useNote>[],
+  scale: number[],
+  index: number,
+  length = 16
+) =>
+  Array(length)
+    .fill(0)
+    .map((_, i) =>
+      patterns
+        .map(({ patternWithRotation }, j) => {
+          const { note, octave } = notes[j];
+
+          const trig =
+            patternWithRotation[(i + index) % patternWithRotation.length];
+
+          return trig ? note + octave * 12 : 0;
+        })
+        .reduce((acc, step) => acc + step, 0)
+    )
+    .map((step) => findNearestNoteInScale(step, scale));

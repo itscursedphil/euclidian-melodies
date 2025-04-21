@@ -1,12 +1,11 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import * as Tone from "tone";
 import useEuclidianPattern from "@/hooks/useEuclidianPattern";
-import { findNearestNoteInScale, noteNames, scales } from "@/lib/melody";
+import { noteNames, scales, getNoteName, getSequence } from "@/lib/melody";
 import useNote from "@/hooks/useNote";
 
 const HomePage = () => {
-  const [scale, setScale] = useState<keyof typeof scales>("Chromatic");
-
   const patterns = [
     useEuclidianPattern(),
     useEuclidianPattern(),
@@ -14,6 +13,64 @@ const HomePage = () => {
     useEuclidianPattern(),
   ];
   const notes = [useNote(), useNote(), useNote(), useNote()];
+
+  const [scale, setScale] = useState<keyof typeof scales>("Chromatic");
+
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const [index, setIndex] = useState(0);
+  const indexRef = useRef(-1);
+
+  const clock = useRef<Tone.Clock | null>(null);
+  const synth = useRef<Tone.Synth | null>(null);
+
+  const melody = getSequence(patterns, notes, scales[scale].notes, index);
+
+  const advanceSequencer = useRef<(time: number) => void>(() => {});
+  advanceSequencer.current = (time) => {
+    indexRef.current = indexRef.current + 1;
+    setIndex(indexRef.current);
+
+    const nextMelody = getSequence(
+      patterns,
+      notes,
+      scales[scale].notes,
+      indexRef.current > -1 ? indexRef.current : 0
+    );
+    const note = nextMelody[0];
+    const noteName = getNoteName(note);
+    const octave = Math.floor(note / 12);
+
+    if (synth.current) {
+      synth.current.triggerAttackRelease(
+        `${noteName}${4 + octave}`,
+        "16n",
+        time
+      );
+    }
+  };
+
+  const initSynth = () => {
+    if (!synth.current) {
+      synth.current = new Tone.Synth().toDestination();
+    }
+  };
+  const initClock = () => {
+    if (!clock.current) {
+      clock.current = new Tone.Clock(
+        (time) => advanceSequencer.current(time),
+        8
+      );
+    }
+  };
+
+  useEffect(() => {
+    if (isPlaying) {
+      clock.current?.start();
+    } else {
+      clock.current?.stop();
+    }
+  }, [isPlaying]);
 
   return (
     <div>
@@ -48,7 +105,9 @@ const HomePage = () => {
                   min="0"
                   max="16"
                   value={steps}
-                  onChange={(e) => handleStepsChange(e.currentTarget.value)}
+                  onChange={(e) => {
+                    handleStepsChange(e.currentTarget.value);
+                  }}
                 />
                 <br />
                 <br />
@@ -61,7 +120,9 @@ const HomePage = () => {
                   min="0"
                   max={steps}
                   value={hits}
-                  onChange={(e) => handleHitsChange(e.currentTarget.value)}
+                  onChange={(e) => {
+                    handleHitsChange(e.currentTarget.value);
+                  }}
                 />
                 <br />
                 <br />
@@ -74,11 +135,15 @@ const HomePage = () => {
                   min="0"
                   max={steps - 1}
                   value={rotation}
-                  onChange={(e) => handleRotationChange(e.currentTarget.value)}
+                  onChange={(e) => {
+                    handleRotationChange(e.currentTarget.value);
+                  }}
                 />
                 <br />
                 <br />
                 <pre>{patternWithRotationFormatted}</pre>
+                <br />
+                <br />
               </div>
             );
           }
@@ -103,15 +168,10 @@ const HomePage = () => {
                   min="0"
                   max="11"
                   value={note}
-                  onChange={(e) => handleNoteChange(e.currentTarget.value)}
+                  onChange={(e) => {
+                    handleNoteChange(e.currentTarget.value);
+                  }}
                 />
-                <br />
-                Note in scale: 
-                {
-                  noteNames[
-                    findNearestNoteInScale(note, scales[scale].notes) % 12
-                  ]
-                }
                 <br />
                 <br />
                 <label htmlFor={`octave${i}`}>Octave: {octave}</label>
@@ -123,7 +183,9 @@ const HomePage = () => {
                   min="0"
                   max="2"
                   value={octave}
-                  onChange={(e) => handleOctaveChange(e.currentTarget.value)}
+                  onChange={(e) => {
+                    handleOctaveChange(e.currentTarget.value);
+                  }}
                 />
               </div>
             );
@@ -138,7 +200,9 @@ const HomePage = () => {
         id="scale"
         name="scale"
         value={scale}
-        onChange={(e) => setScale(e.currentTarget.value as keyof typeof scales)}
+        onChange={(e) => {
+          setScale(e.currentTarget.value as keyof typeof scales);
+        }}
       >
         {Object.keys(scales).map((key) => (
           <option key={key} value={key}>
@@ -146,6 +210,68 @@ const HomePage = () => {
           </option>
         ))}
       </select>
+      <br />
+      <br />
+      <button
+        onClick={() => {
+          initSynth();
+          initClock();
+
+          setIsPlaying((prev) => !prev);
+        }}
+      >
+        {isPlaying ? "Stop" : "Play"}
+      </button>
+      <button
+        onClick={() => {
+          indexRef.current = -1;
+          setIndex(0);
+        }}
+      >
+        Reset
+      </button>
+      <br />
+      <br />
+      <div
+        style={{
+          display: "flex",
+          width: "100%",
+          height: `${
+            Math.floor(
+              notes.reduce((height, { note, octave }) => {
+                return height + note + octave * 12;
+              }, 12) / 12
+            ) *
+            12 *
+            5
+          }px`,
+          alignItems: "flex-end",
+        }}
+      >
+        {melody.map((n, i) => (
+          <div
+            key={i}
+            style={{
+              width: "100%",
+              height: `${(n + 1) * 5}px`,
+              backgroundColor: i === 0 ? "red" : "black",
+              border: "1px solid white",
+            }}
+          />
+        ))}
+      </div>
+      <div
+        style={{
+          display: "flex",
+          width: "100%",
+        }}
+      >
+        {melody.map((n, i) => (
+          <div key={i} style={{ width: "100%", textAlign: "center" }}>
+            {getNoteName(n)}
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
