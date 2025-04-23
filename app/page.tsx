@@ -167,13 +167,8 @@ const HomePage = () => {
   };
 
   return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          width: "100%",
-        }}
-      >
+    <div className="w-full max-w-5xl px-8 mx-auto">
+      <div className="flex w-full">
         {patterns.map(
           (
             {
@@ -188,7 +183,7 @@ const HomePage = () => {
             i
           ) => {
             return (
-              <div key={i} style={{ width: "100%" }}>
+              <div key={i} className="w-full">
                 <h3>Pattern {i + 1}</h3>
                 <EuclidianRhythmStepsControls
                   value={steps}
@@ -207,22 +202,19 @@ const HomePage = () => {
                   index={i}
                   onChange={handleRotationChange}
                 />
-                <pre>{patternWithRotationFormatted}</pre>
+                <pre className="text-[0.6rem]">
+                  {patternWithRotationFormatted}
+                </pre>
               </div>
             );
           }
         )}
       </div>
-      <div
-        style={{
-          display: "flex",
-          width: "100%",
-        }}
-      >
+      <div className="flex w-full">
         {notes.map(
           ({ note, octave, handleNoteChange, handleOctaveChange }, i) => {
             return (
-              <div key={i} style={{ width: "100%" }}>
+              <div key={i} className="w-full">
                 <NoteControls
                   value={note}
                   index={i}

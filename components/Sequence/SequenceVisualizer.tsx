@@ -19,12 +19,9 @@ const SequenceVisualizer: React.FC<{
   return (
     <div>
       <div
+        className="flex items-end relative w-full"
         style={{
-          display: "flex",
-          width: "100%",
           height: `${sequenceHeight}px`,
-          alignItems: "flex-end",
-          position: "relative",
         }}
       >
         {Array(totalOctaves + 1)
@@ -32,39 +29,28 @@ const SequenceVisualizer: React.FC<{
           .map((_, i) => (
             <div
               key={i}
+              className="w-full h-[1px] absolute bg-secondary"
               style={{
-                width: "100%",
-                height: "1px",
-                backgroundColor: "black",
-                position: "absolute",
                 top: `${(sequenceHeight / totalOctaves) * i}px`,
-                opacity: 0.2,
               }}
             />
           ))}
         {sequence.map((n, i) => (
           <div
             key={i}
+            className={`w-full mx-[2px] relative origin-bottom ${
+              i === 0 ? "bg-primary" : "bg-secondary"
+            }`}
             style={{
-              width: "calc(100% - 2px)",
               height: `${sequenceHeight}px`,
-              backgroundColor: i === 0 ? "red" : "black",
-              margin: "0 1px",
-              position: "relative",
               transform: `scaleY(${(1 / (totalOctaves * 12)) * (n + 1)})`,
-              transformOrigin: "bottom",
             }}
           />
         ))}
       </div>
-      <div
-        style={{
-          display: "flex",
-          width: "100%",
-        }}
-      >
+      <div className="flex w-full">
         {sequence.map((n, i) => (
-          <div key={i} style={{ width: "100%", textAlign: "center" }}>
+          <div key={i} className="w-full text-center">
             {getNoteName(n)}
           </div>
         ))}
