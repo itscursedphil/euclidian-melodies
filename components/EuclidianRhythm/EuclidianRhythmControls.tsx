@@ -1,25 +1,29 @@
 import React from "react";
 import useEuclidianPattern from "@/hooks/useEuclidianPattern";
+import { Slider } from "@/components/ui/slider";
 
 export const EuclidianRhythmHitsControls: React.FC<{
   value: number;
   steps: number;
   index?: number;
   onChange: ReturnType<typeof useEuclidianPattern>["handleHitsChange"];
-}> = ({ value, steps, index = 0, onChange }) => (
-  <div>
-    <label htmlFor={`hits${index}`}>Hits: {value}</label>
-    <br />
-    <input
-      type="range"
+  className?: string;
+}> = ({ value, steps, index = 0, onChange, className }) => (
+  <div className={className}>
+    <div className="flex justify-between">
+      <label htmlFor={`hits${index}`}>Hits </label>
+      <span>{value}</span>
+    </div>
+    <Slider
       id={`hits${index}`}
       name={`hits${index}`}
-      min="0"
+      min={0}
       max={steps}
-      value={value}
-      onChange={(e) => {
-        onChange(e.currentTarget.value);
+      value={[value]}
+      onValueChange={([v]) => {
+        onChange(v);
       }}
+      className="mt-2"
     />
   </div>
 );
@@ -28,20 +32,23 @@ export const EuclidianRhythmStepsControls: React.FC<{
   value: number;
   index?: number;
   onChange: ReturnType<typeof useEuclidianPattern>["handleStepsChange"];
-}> = ({ value, index = 0, onChange }) => (
-  <div>
-    <label htmlFor={`steps${index}`}>Steps: {value}</label>
-    <br />
-    <input
-      type="range"
+  className?: string;
+}> = ({ value, index = 0, onChange, className }) => (
+  <div className={className}>
+    <div className="flex justify-between">
+      <label htmlFor={`steps${index}`}>Steps </label>
+      <span>{value}</span>
+    </div>
+    <Slider
       id={`steps${index}`}
       name={`steps${index}`}
-      min="0"
-      max="16"
-      value={value}
-      onChange={(e) => {
-        onChange(e.currentTarget.value);
+      min={0}
+      max={16}
+      value={[value]}
+      onValueChange={([v]) => {
+        onChange(v);
       }}
+      className="mt-2"
     />
   </div>
 );
@@ -51,20 +58,23 @@ export const EuclidianRhythmRotationControls: React.FC<{
   steps: number;
   index?: number;
   onChange: ReturnType<typeof useEuclidianPattern>["handleRotationChange"];
-}> = ({ value, steps, index = 0, onChange }) => (
-  <div>
-    <label htmlFor={`rotation${index}`}>Rotation: {value}</label>
-    <br />
-    <input
-      type="range"
+  className?: string;
+}> = ({ value, steps, index = 0, onChange, className }) => (
+  <div className={className}>
+    <div className="flex justify-between">
+      <label htmlFor={`rotation${index}`}>Rotation </label>
+      <span>{value}</span>
+    </div>
+    <Slider
       id={`rotation${index}`}
       name={`rotation${index}`}
-      min="0"
+      min={0}
       max={steps - 1}
-      value={value}
-      onChange={(e) => {
-        onChange(e.currentTarget.value);
+      value={[value]}
+      onValueChange={([v]) => {
+        onChange(v);
       }}
+      className="mt-2"
     />
   </div>
 );

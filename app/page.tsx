@@ -1,35 +1,48 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import * as Tone from "tone";
+import Link from "next/link";
 
 import useEuclidianPattern from "@/hooks/useEuclidianPattern";
 import useNote from "@/hooks/useNote";
-import { noteNames, scales, getNoteName, getSequence } from "@/lib/melody";
+import { scales, getNoteName, getSequence } from "@/lib/melody";
 import SequenceVisualizer from "@/components/Sequence/SequenceVisualizer";
 import {
   EuclidianRhythmHitsControls,
   EuclidianRhythmRotationControls,
   EuclidianRhythmStepsControls,
 } from "@/components/EuclidianRhythm/EuclidianRhythmControls";
+import { Slider } from "@/components/ui/slider";
+import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import {
+  Play as PlayIcon,
+  Pause as PauseIcon,
+  RotateCcw as ResetIcon,
+} from "lucide-react";
+import EuclidianRhythmVisualizer from "@/components/EuclidianRhythm/EuclidianRhythmVisualizer";
 
 const NoteControls: React.FC<{
   value: number;
   index?: number;
   onChange: ReturnType<typeof useNote>["handleNoteChange"];
-}> = ({ value, index = 0, onChange }) => (
-  <div>
-    <label htmlFor={`note${index}`}>Note: {noteNames[value]}</label>
-    <br />
-    <input
-      type="range"
+  className?: string;
+}> = ({ value, index = 0, onChange, className }) => (
+  <div className={className}>
+    <div className="flex justify-between">
+      <label htmlFor={`note${index}`}>Note </label>
+      <span>{getNoteName(value)}</span>
+    </div>
+    <Slider
       id={`note${index}`}
       name={`note${index}`}
-      min="0"
-      max="11"
-      value={value}
-      onChange={(e) => {
-        onChange(e.currentTarget.value);
+      min={0}
+      max={11}
+      value={[value]}
+      onValueChange={([v]) => {
+        onChange(v);
       }}
+      className="mt-2"
     />
   </div>
 );
@@ -38,20 +51,23 @@ const OctaveControls: React.FC<{
   value: number;
   index?: number;
   onChange: ReturnType<typeof useNote>["handleOctaveChange"];
-}> = ({ value, index = 0, onChange }) => (
-  <div>
-    <label htmlFor={`octave${index}`}>Octave: {value}</label>
-    <br />
-    <input
-      type="range"
+  className?: string;
+}> = ({ value, index = 0, onChange, className }) => (
+  <div className={className}>
+    <div className="flex justify-between">
+      <label htmlFor={`octave${index}`}>Octave </label>
+      <span>{value}</span>
+    </div>
+    <Slider
       id={`octave${index}`}
       name={`octave${index}`}
-      min="0"
-      max="2"
-      value={value}
-      onChange={(e) => {
-        onChange(e.currentTarget.value);
+      min={0}
+      max={2}
+      value={[value]}
+      onValueChange={([v]) => {
+        onChange(v);
       }}
+      className="mt-2"
     />
   </div>
 );
@@ -60,8 +76,9 @@ const ScaleSelect: React.FC<{
   value: string;
   index?: number;
   onChange: (nextScale: keyof typeof scales) => void;
-}> = ({ value, index = 0, onChange }) => (
-  <div>
+  className?: string;
+}> = ({ value, index = 0, onChange, className }) => (
+  <div className={className}>
     <label htmlFor={`scale${index}`}>Scale: {value}</label>
     <br />
     <select
@@ -103,7 +120,7 @@ const HomePage = () => {
   const indexRef = useRef(-1);
 
   const clock = useRef<Tone.Clock | null>(null);
-  const synth = useRef<Tone.Synth | null>(null);
+  const synth = useRef<Tone.MonoSynth | null>(null);
 
   const sequence = getSequence(patterns, notes, scales[scale].notes, index);
 
@@ -125,7 +142,7 @@ const HomePage = () => {
     if (synth.current) {
       synth.current.triggerAttackRelease(
         `${noteName}${4 + octave}`,
-        "16n",
+        0.01,
         time
       );
     }
@@ -133,7 +150,19 @@ const HomePage = () => {
 
   const initSynth = () => {
     if (!synth.current) {
-      synth.current = new Tone.Synth().toDestination();
+      synth.current = new Tone.MonoSynth({
+        oscillator: {
+          type: "sawtooth",
+        },
+        envelope: {
+          attack: 0.005,
+          release: 0.6,
+        },
+        filterEnvelope: {
+          attack: 0,
+          release: 0.8,
+        },
+      }).toDestination();
     }
   };
 
@@ -167,15 +196,27 @@ const HomePage = () => {
   };
 
   return (
-    <div className="w-full max-w-5xl px-8 mx-auto">
-      <div className="flex w-full">
+    <div className="w-full max-w-5xl px-8 mx-auto mt-12">
+      <div className="w-full flex justify-between">
+        <h1 className="text-4xl">Euclidian Melodies</h1>
+        <nav className="flex items-center">
+          <Button variant="outline" className="mr-2" asChild>
+            <Link href="/">Learn</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/">Playground</Link>
+          </Button>
+        </nav>
+      </div>
+      <Separator className="mt-6" />
+      <div className="flex w-full space-x-12 mt-6">
         {patterns.map(
           (
             {
               steps,
               hits,
               rotation,
-              patternWithRotationFormatted,
+              patternWithRotation,
               handleHitsChange,
               handleRotationChange,
               handleStepsChange,
@@ -185,32 +226,38 @@ const HomePage = () => {
             return (
               <div key={i} className="w-full">
                 <h3>Pattern {i + 1}</h3>
+                <Separator className="mt-4" />
+                <EuclidianRhythmVisualizer
+                  pattern={patternWithRotation}
+                  index={index}
+                  className="mt-6"
+                />
                 <EuclidianRhythmStepsControls
                   value={steps}
                   index={i}
                   onChange={handleStepsChange}
+                  className="mt-6"
                 />
                 <EuclidianRhythmHitsControls
                   value={hits}
                   steps={steps}
                   index={i}
                   onChange={handleHitsChange}
+                  className="mt-6"
                 />
                 <EuclidianRhythmRotationControls
                   value={rotation}
                   steps={steps}
                   index={i}
                   onChange={handleRotationChange}
+                  className="mt-6"
                 />
-                <pre className="text-[0.6rem]">
-                  {patternWithRotationFormatted}
-                </pre>
               </div>
             );
           }
         )}
       </div>
-      <div className="flex w-full">
+      <div className="flex w-full space-x-12">
         {notes.map(
           ({ note, octave, handleNoteChange, handleOctaveChange }, i) => {
             return (
@@ -219,11 +266,13 @@ const HomePage = () => {
                   value={note}
                   index={i}
                   onChange={handleNoteChange}
+                  className="mt-6"
                 />
                 <OctaveControls
                   value={octave}
                   index={i}
                   onChange={handleOctaveChange}
+                  className="mt-6"
                 />
               </div>
             );
@@ -231,11 +280,20 @@ const HomePage = () => {
         )}
       </div>
       <ScaleSelect value={scale} onChange={setScale} />
-      <button onClick={handlePlayToggleClick}>
+      <Button variant="outline" onClick={handlePlayToggleClick}>
+        {isPlaying ? <PauseIcon /> : <PlayIcon />}
         {isPlaying ? "Stop" : "Play"}
-      </button>
-      <button onClick={handleResetClick}>Reset</button>
-      <SequenceVisualizer sequence={sequence} notes={notes} />
+      </Button>
+      <Button variant="outline" className="ml-2" onClick={handleResetClick}>
+        <ResetIcon />
+        Reset
+      </Button>
+      <SequenceVisualizer
+        sequence={sequence}
+        notes={notes}
+        index={index}
+        className="mt-8"
+      />
     </div>
   );
 };

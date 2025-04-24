@@ -1,11 +1,14 @@
 import React from "react";
 import useNote from "@/hooks/useNote";
 import { getNoteName } from "@/lib/melody";
+import { cn } from "@/lib/utils";
 
 const SequenceVisualizer: React.FC<{
   sequence: number[];
   notes: ReturnType<typeof useNote>[];
-}> = ({ sequence, notes }) => {
+  index?: number;
+  className?: string;
+}> = ({ sequence, notes, index = 0, className }) => {
   const sequenceHeight =
     Math.floor(
       notes.reduce((height, { note, octave }) => {
@@ -17,9 +20,21 @@ const SequenceVisualizer: React.FC<{
   const totalOctaves = Math.floor(sequenceHeight / 12 / 5);
 
   return (
-    <div>
+    <div className={cn("relative", className)}>
+      <div className="flex">
+        {sequence.map((_, i) => (
+          <div
+            key={i}
+            className={`w-full ${
+              (i + index) % 16 === 0 ? "text-primary" : "text-secondary"
+            }`}
+          >
+            {i + index + 1}
+          </div>
+        ))}
+      </div>
       <div
-        className="flex items-end relative w-full"
+        className="flex items-end relative w-full mt-2"
         style={{
           height: `${sequenceHeight}px`,
         }}
@@ -48,9 +63,12 @@ const SequenceVisualizer: React.FC<{
           />
         ))}
       </div>
-      <div className="flex w-full">
+      <div className="flex w-full mt-2">
         {sequence.map((n, i) => (
-          <div key={i} className="w-full text-center">
+          <div
+            key={i}
+            className={`w-full ${i === 0 ? "text-primary" : "text-secondary"}`}
+          >
             {getNoteName(n)}
           </div>
         ))}
