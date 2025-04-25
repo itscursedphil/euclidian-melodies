@@ -1,6 +1,8 @@
 "use client";
 
+import { Moon, Sun } from "lucide-react";
 import Link from "next/link";
+import { useTheme } from "next-themes";
 import React, { useEffect, useRef, useState } from "react";
 import * as Tone from "tone";
 
@@ -20,19 +22,33 @@ import { ScaleName, scales } from "@/lib/scale";
 import { getSequence, SequencerPlaybackDirection } from "@/lib/sequencer";
 import { createMonoSynth, playNote } from "@/lib/synth";
 
-const PageHeader: React.FC = () => (
-  <div className="w-full flex justify-between">
-    <h1 className="text-4xl">Euclidian Melodies</h1>
-    <nav className="flex items-center">
-      <Button variant="outline" className="mr-2" asChild>
-        <Link href="/">Learn</Link>
-      </Button>
-      <Button variant="outline" asChild>
-        <Link href="/">Explore</Link>
-      </Button>
-    </nav>
-  </div>
-);
+const PageHeader: React.FC = () => {
+  const { theme, setTheme } = useTheme();
+
+  return (
+    <div className="w-full flex justify-between">
+      <h1 className="text-4xl">Euclidian Melodies</h1>
+      <nav className="flex space-x-2 items-center">
+        <Button variant="outline" asChild>
+          <Link href="/">Learn</Link>
+        </Button>
+        <Button variant="outline" asChild>
+          <Link href="/">Explore</Link>
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => {
+            setTheme(theme === "dark" ? "light" : "dark");
+          }}
+        >
+          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+          <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          <span className="sr-only">Toggle theme</span>
+        </Button>
+      </nav>
+    </div>
+  );
+};
 
 const HomePage = () => {
   const patterns = [
@@ -54,10 +70,15 @@ const HomePage = () => {
   const [tempo, setTempo] = useState(120);
   const [isPlaying, setIsPlaying] = useState(false);
 
+  const [signatureBeats, setSignatureBeats] = useState(4);
+  const [signatureDuration, setSignatureDuration] = useState(4);
+
+  const barLength = signatureBeats * signatureDuration;
+
   const [index, setIndex] = useState(0);
   const indexRef = useRef(-1);
 
-  const clock = useRef<Tone.Clock<"bpm"> | null>(null);
+  const clock = useRef<Tone.Clock | null>(null);
   const synth = useRef<Tone.MonoSynth | null>(null);
 
   const sequence = getSequence(
@@ -203,9 +224,13 @@ const HomePage = () => {
         />
         <SequencerTransportControls
           tempo={tempo}
+          signatureBeats={signatureBeats}
+          signatureDuration={signatureDuration}
           index={0}
           isPlaying={isPlaying}
           onTempoChange={setTempo}
+          onSignatureBarsChange={setSignatureBeats}
+          onSignatureBeatsChange={setSignatureDuration}
           onPlayToggle={handlePlayToggleClick}
           onReset={handleResetClick}
         />
@@ -215,6 +240,7 @@ const HomePage = () => {
         notes={notes}
         index={index}
         root={root}
+        barLength={barLength}
         className="my-6"
       />
     </div>

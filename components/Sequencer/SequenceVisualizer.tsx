@@ -9,6 +9,7 @@ export type SequenceVisualizerProps = {
   notes: ReturnType<typeof useNote>[];
   index?: number;
   root?: number;
+  barLength?: number;
   className?: string;
 };
 
@@ -20,6 +21,7 @@ const SequenceVisualizer: React.FC<SequenceVisualizerProps> = ({
   notes,
   index = 0,
   root = 0,
+  barLength = 16,
   className,
 }) => {
   const noteHeight = 5;
@@ -34,7 +36,7 @@ const SequenceVisualizer: React.FC<SequenceVisualizerProps> = ({
           <div
             key={i}
             className={`w-full ${
-              (i + index) % 16 === 0 ? "text-primary" : "text-secondary"
+              (i + index) % barLength === 0 ? "text-primary" : "text-secondary"
             }`}
           >
             {i + index + 1}
