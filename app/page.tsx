@@ -14,8 +14,9 @@ import { Button } from "@/components/UI/Button";
 import { Separator } from "@/components/UI/Separator";
 import useEuclidianPattern from "@/hooks/useEuclidianPattern";
 import useNote from "@/hooks/useNote";
+import { getClockFrequencyFromTempo } from "@/lib/clock";
 import { getNoteName } from "@/lib/note";
-import { scales } from "@/lib/scale";
+import { ScaleName, scales } from "@/lib/scale";
 import { getSequence, SequencerPlaybackDirection } from "@/lib/sequencer";
 import { createMonoSynth, playNote } from "@/lib/synth";
 
@@ -48,14 +49,15 @@ const HomePage = () => {
   ];
 
   const [root, setRoot] = useState(0);
-  const [scale, setScale] = useState<keyof typeof scales>("Chromatic");
+  const [scale, setScale] = useState<ScaleName>("Chromatic");
 
+  const [tempo, setTempo] = useState(120);
   const [isPlaying, setIsPlaying] = useState(false);
 
   const [index, setIndex] = useState(0);
   const indexRef = useRef(-1);
 
-  const clock = useRef<Tone.Clock | null>(null);
+  const clock = useRef<Tone.Clock<"bpm"> | null>(null);
   const synth = useRef<Tone.MonoSynth | null>(null);
 
   const sequence = getSequence(
@@ -97,7 +99,7 @@ const HomePage = () => {
     if (!clock.current) {
       clock.current = new Tone.Clock(
         (time) => advanceSequencer.current(time),
-        4
+        getClockFrequencyFromTempo(tempo)
       );
     }
   };
@@ -117,6 +119,12 @@ const HomePage = () => {
       clock.current?.stop();
     }
   }, [isPlaying]);
+
+  useEffect(() => {
+    if (clock.current) {
+      clock.current.set({ frequency: getClockFrequencyFromTempo(tempo) });
+    }
+  }, [tempo]);
 
   const handleResetClick = () => {
     indexRef.current = -1;
@@ -189,14 +197,17 @@ const HomePage = () => {
         )}
       </div>
       <div className="flex justify-between items-center mt-12">
-        <SequencerTransportControls
-          isPlaying={isPlaying}
-          onPlayToggle={handlePlayToggleClick}
-          onReset={handleResetClick}
-        />
         <SequencerNoteControls
           onRootNoteChange={setRoot}
           onScaleChange={setScale}
+        />
+        <SequencerTransportControls
+          tempo={tempo}
+          index={0}
+          isPlaying={isPlaying}
+          onTempoChange={setTempo}
+          onPlayToggle={handlePlayToggleClick}
+          onReset={handleResetClick}
         />
       </div>
       <SequenceVisualizer

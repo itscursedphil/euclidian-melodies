@@ -1,9 +1,10 @@
 import React from "react";
 
+import useEuclidianPattern from "@/hooks/useEuclidianPattern";
 import { cn } from "@/lib/utils";
 
 export type EuclidianRhythmVisualizerProps = {
-  pattern: number[];
+  pattern: ReturnType<typeof useEuclidianPattern>["pattern"];
   index?: number;
   className?: string;
 };

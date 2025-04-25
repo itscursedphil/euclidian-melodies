@@ -3,17 +3,28 @@ import React from "react";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/UI/Select";
 import { getNoteName } from "@/lib/note";
-import { scales } from "@/lib/scale";
+import {
+  alteredScales,
+  baseScales,
+  experimentalScales,
+  japaneseScales,
+  modalScales,
+  ScaleName,
+  scales,
+  traditionalScales,
+} from "@/lib/scale";
 import { cn } from "@/lib/utils";
 
 export type SequencerScaleSelectProps = {
   index?: number;
-  onChange: (nextScale: keyof typeof scales) => void;
+  onChange: (nextScale: ScaleName) => void;
   className?: string;
 };
 
@@ -44,11 +55,44 @@ export const SequencerScaleSelect: React.FC<SequencerScaleSelectProps> = ({
         <SelectValue placeholder="Select" />
       </SelectTrigger>
       <SelectContent>
-        {Object.keys(scales).map((key) => (
-          <SelectItem key={key} value={key}>
-            {key}
-          </SelectItem>
-        ))}
+        <SelectGroup>
+          <SelectLabel>Base</SelectLabel>
+          {Object.keys(baseScales).map((key) => (
+            <SelectItem key={key} value={key}>
+              {key}
+            </SelectItem>
+          ))}
+          <SelectLabel>Modal</SelectLabel>
+          {Object.keys(modalScales).map((key) => (
+            <SelectItem key={key} value={key}>
+              {key}
+            </SelectItem>
+          ))}
+          <SelectLabel>Altered</SelectLabel>
+          {Object.keys(alteredScales).map((key) => (
+            <SelectItem key={key} value={key}>
+              {key}
+            </SelectItem>
+          ))}
+          <SelectLabel>Traditional</SelectLabel>
+          {Object.keys(traditionalScales).map((key) => (
+            <SelectItem key={key} value={key}>
+              {key}
+            </SelectItem>
+          ))}
+          <SelectLabel>Japanese</SelectLabel>
+          {Object.keys(japaneseScales).map((key) => (
+            <SelectItem key={key} value={key}>
+              {key}
+            </SelectItem>
+          ))}
+          <SelectLabel>Experimental</SelectLabel>
+          {Object.keys(experimentalScales).map((key) => (
+            <SelectItem key={key} value={key}>
+              {key}
+            </SelectItem>
+          ))}
+        </SelectGroup>
       </SelectContent>
     </Select>
   </div>
