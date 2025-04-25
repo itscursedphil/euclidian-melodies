@@ -61,10 +61,6 @@ export const rotatePattern = (pattern: number[], offset: number) => {
     });
 };
 
-export const formatPattern = (pattern: number[]) => {
-  return `[${pattern.map((s) => (s ? "X" : ".")).join(" ")}]`;
-};
-
 export const getValueAtIndexWrapped = <T>(arr: T[], i: number): T => {
   return arr[i % arr.length];
 };

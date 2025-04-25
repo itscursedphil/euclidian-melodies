@@ -4,6 +4,7 @@ import { findNearestNoteInScale } from "@/lib/note";
 
 export type SequencerPlaybackDirection = "forward" | "backward";
 
+// TODO: write tests for this function
 export const getSequence = (
   patterns: ReturnType<typeof useEuclidianPattern>[],
   notes: ReturnType<typeof useNote>[],

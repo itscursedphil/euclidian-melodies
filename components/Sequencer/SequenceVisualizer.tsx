@@ -1,7 +1,7 @@
 import React from "react";
 
 import useNote from "@/hooks/useNote";
-import { getNoteName } from "@/lib/note";
+import { getMaxPossibleNote, getNoteName } from "@/lib/note";
 import { cn } from "@/lib/utils";
 
 export type SequenceVisualizerProps = {
@@ -12,6 +12,9 @@ export type SequenceVisualizerProps = {
   className?: string;
 };
 
+const getNoteScale = (note: number, octaves: number, root = 0) =>
+  (1 / (octaves * 12)) * (note - root + 1);
+
 const SequenceVisualizer: React.FC<SequenceVisualizerProps> = ({
   sequence,
   notes,
@@ -19,15 +22,10 @@ const SequenceVisualizer: React.FC<SequenceVisualizerProps> = ({
   root = 0,
   className,
 }) => {
-  const sequenceHeight =
-    Math.floor(
-      notes.reduce((height, { note, octave }) => {
-        return height + note + octave * 12;
-      }, 12) / 12
-    ) *
-    12 *
-    5;
-  const totalOctaves = Math.floor(sequenceHeight / 12 / 5);
+  const noteHeight = 5;
+  const maxNote = getMaxPossibleNote(notes);
+  const sequenceHeight = maxNote * noteHeight;
+  const totalOctaves = Math.floor(maxNote / 12);
 
   return (
     <div className={cn("relative", className)}>
@@ -68,9 +66,7 @@ const SequenceVisualizer: React.FC<SequenceVisualizerProps> = ({
             }`}
             style={{
               height: `${sequenceHeight}px`,
-              transform: `scaleY(${
-                (1 / (totalOctaves * 12)) * (n - root + 1)
-              })`,
+              transform: `scaleY(${getNoteScale(n, totalOctaves, root)})`,
             }}
           />
         ))}

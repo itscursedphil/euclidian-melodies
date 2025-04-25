@@ -1,10 +1,6 @@
 import { useState } from "react";
 
-import {
-  formatPattern,
-  getEuclidianPattern,
-  rotatePattern,
-} from "@/lib/euclidian";
+import { getEuclidianPattern, rotatePattern } from "@/lib/euclidian";
 
 const useEuclidianPattern = ({
   initialSteps = 16,
@@ -21,7 +17,6 @@ const useEuclidianPattern = ({
 
   const pattern = getEuclidianPattern(hits, steps);
   const patternWithRotation = rotatePattern(pattern, rotation);
-  const patternWithRotationFormatted = formatPattern(patternWithRotation);
 
   const handleStepsChange = (nextSteps: string | number) => {
     const int =
@@ -64,7 +59,6 @@ const useEuclidianPattern = ({
     rotation,
     pattern,
     patternWithRotation,
-    patternWithRotationFormatted,
     handleStepsChange,
     handleHitsChange,
     handleRotationChange,

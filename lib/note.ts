@@ -1,3 +1,5 @@
+import useNote from "@/hooks/useNote";
+
 export const noteNames = [
   "C",
   "C#",
@@ -34,3 +36,10 @@ export const findNearestNoteInScale = (
 
   return notesInScale[nearestNoteIndex] + octave * 12;
 };
+
+export const getMaxPossibleNote = (notes: ReturnType<typeof useNote>[]) =>
+  Math.floor(
+    notes.reduce((height, { note, octave }) => {
+      return height + note + octave * 12;
+    }, 12) / 12
+  ) * 12;
