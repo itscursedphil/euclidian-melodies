@@ -5,13 +5,8 @@ import React, { useEffect, useRef, useState } from "react";
 import * as Tone from "tone";
 
 import EuclidianRhythmVisualizer from "@/components/EuclidianRhythm/EuclidianRhythmVisualizer";
-import {
-  PatternHitsControls,
-  PatternNoteControls,
-  PatternOctaveControls,
-  PatternRotationControls,
-  PatternStepsControls,
-} from "@/components/Pattern/PatternControls";
+import PatternRhythmControls from "@/components/Pattern/PatternRhythmControls";
+import PatternSequenceControls from "@/components/Pattern/PatternSequenceControls";
 import SequencerNoteControls from "@/components/Sequencer/SequencerNoteControls";
 import SequencerTransportControls from "@/components/Sequencer/SequencerTransportControls";
 import SequenceVisualizer from "@/components/Sequencer/SequenceVisualizer";
@@ -162,25 +157,14 @@ const HomePage = () => {
                   index={index}
                   className="mt-6"
                 />
-                <PatternStepsControls
-                  value={steps}
-                  index={i}
-                  onChange={handleStepsChange}
-                  className="mt-6"
-                />
-                <PatternHitsControls
-                  value={hits}
+                <PatternRhythmControls
                   steps={steps}
+                  hits={hits}
+                  rotation={rotation}
                   index={i}
-                  onChange={handleHitsChange}
-                  className="mt-6"
-                />
-                <PatternRotationControls
-                  value={rotation}
-                  steps={steps}
-                  index={i}
-                  onChange={handleRotationChange}
-                  className="mt-6"
+                  onStepsChange={handleStepsChange}
+                  onHitsChange={handleHitsChange}
+                  onRotationChange={handleRotationChange}
                 />
               </div>
             );
@@ -191,20 +175,15 @@ const HomePage = () => {
         {notes.map(
           ({ note, octave, handleNoteChange, handleOctaveChange }, i) => {
             return (
-              <div key={i} className="w-full">
-                <PatternNoteControls
-                  value={note}
-                  index={i}
-                  onChange={handleNoteChange}
-                  className="mt-6"
-                />
-                <PatternOctaveControls
-                  value={octave}
-                  index={i}
-                  onChange={handleOctaveChange}
-                  className="mt-6"
-                />
-              </div>
+              <PatternSequenceControls
+                key={i}
+                className="w-full"
+                note={note}
+                octave={octave}
+                index={i}
+                onNoteChange={handleNoteChange}
+                onOctaveChange={handleOctaveChange}
+              />
             );
           }
         )}
