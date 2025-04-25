@@ -15,19 +15,21 @@ import {
 } from "@/components/EuclidianRhythm/EuclidianRhythmControls";
 import EuclidianRhythmVisualizer from "@/components/EuclidianRhythm/EuclidianRhythmVisualizer";
 import SequenceVisualizer from "@/components/Sequence/SequenceVisualizer";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/UI/Button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { Slider } from "@/components/ui/slider";
+} from "@/components/UI/Select";
+import { Separator } from "@/components/UI/Separator";
+import { Slider } from "@/components/UI/Slider";
 import useEuclidianPattern from "@/hooks/useEuclidianPattern";
 import useNote from "@/hooks/useNote";
-import { getNoteName, getSequence, scales } from "@/lib/melody";
+import { getNoteName } from "@/lib/note";
+import { scales } from "@/lib/scale";
+import { getSequence } from "@/lib/sequencer";
 import { initializeSynth } from "@/lib/synth";
 
 type SequencerPlaybackDirection = "forward" | "backward";
@@ -41,7 +43,7 @@ const NoteControls: React.FC<{
   <div className={className}>
     <div className="flex justify-between">
       <label htmlFor={`note${index}`}>Note </label>
-      <span>{getNoteName(value)}</span>
+      <span>{value}</span>
     </div>
     <Slider
       id={`note${index}`}

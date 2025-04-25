@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Slider } from "@/components/ui/slider";
+import { Slider } from "@/components/UI/Slider";
 import useEuclidianPattern from "@/hooks/useEuclidianPattern";
 
 export const EuclidianRhythmHitsControls: React.FC<{

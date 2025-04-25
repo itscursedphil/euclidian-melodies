@@ -1,7 +1,7 @@
 import React from "react";
 
 import useNote from "@/hooks/useNote";
-import { getNoteName } from "@/lib/melody";
+import { getNoteName } from "@/lib/note";
 import { cn } from "@/lib/utils";
 
 const SequenceVisualizer: React.FC<{
