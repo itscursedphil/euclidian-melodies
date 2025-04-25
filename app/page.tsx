@@ -1,26 +1,36 @@
 "use client";
+import {
+  Pause as PauseIcon,
+  Play as PlayIcon,
+  RotateCcw as ResetIcon,
+} from "lucide-react";
+import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
 import * as Tone from "tone";
-import Link from "next/link";
 
-import useEuclidianPattern from "@/hooks/useEuclidianPattern";
-import useNote from "@/hooks/useNote";
-import { scales, getNoteName, getSequence } from "@/lib/melody";
-import SequenceVisualizer from "@/components/Sequence/SequenceVisualizer";
 import {
   EuclidianRhythmHitsControls,
   EuclidianRhythmRotationControls,
   EuclidianRhythmStepsControls,
 } from "@/components/EuclidianRhythm/EuclidianRhythmControls";
-import { Slider } from "@/components/ui/slider";
-import { Separator } from "@/components/ui/separator";
+import EuclidianRhythmVisualizer from "@/components/EuclidianRhythm/EuclidianRhythmVisualizer";
+import SequenceVisualizer from "@/components/Sequence/SequenceVisualizer";
 import { Button } from "@/components/ui/button";
 import {
-  Play as PlayIcon,
-  Pause as PauseIcon,
-  RotateCcw as ResetIcon,
-} from "lucide-react";
-import EuclidianRhythmVisualizer from "@/components/EuclidianRhythm/EuclidianRhythmVisualizer";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Slider } from "@/components/ui/slider";
+import useEuclidianPattern from "@/hooks/useEuclidianPattern";
+import useNote from "@/hooks/useNote";
+import { getNoteName, getSequence, scales } from "@/lib/melody";
+import { initializeSynth } from "@/lib/synth";
+
+type SequencerPlaybackDirection = "forward" | "backward";
 
 const NoteControls: React.FC<{
   value: number;
@@ -81,20 +91,21 @@ const ScaleSelect: React.FC<{
   <div className={className}>
     <label htmlFor={`scale${index}`}>Scale: {value}</label>
     <br />
-    <select
-      id={`scale${index}`}
-      name={`scale${index}`}
-      value={value}
-      onChange={(e) => {
-        onChange(e.currentTarget.value as keyof typeof scales);
-      }}
-    >
-      {Object.keys(scales).map((key) => (
-        <option key={key} value={key}>
-          {key}
-        </option>
-      ))}
-    </select>
+    <Select>
+      <SelectTrigger className="">
+        <SelectValue placeholder="Select" />
+      </SelectTrigger>
+      <SelectContent>
+        {Object.keys(scales).map((key) => (
+          <SelectItem key={key} value={key}>
+            {key}
+          </SelectItem>
+        ))}
+        {/* <SelectItem value="light">Light</SelectItem>
+    <SelectItem value="dark">Dark</SelectItem>
+    <SelectItem value="system">System</SelectItem> */}
+      </SelectContent>
+    </Select>
   </div>
 );
 
@@ -125,8 +136,14 @@ const HomePage = () => {
   const sequence = getSequence(patterns, notes, scales[scale].notes, index);
 
   const advanceSequencer = useRef<(time: number) => void>(() => {});
-  advanceSequencer.current = (time) => {
-    indexRef.current = indexRef.current + 1;
+  advanceSequencer.current = (
+    time,
+    direction: SequencerPlaybackDirection = "forward"
+  ) => {
+    indexRef.current =
+      indexRef.current > 0 && direction === "backward"
+        ? indexRef.current - 1
+        : indexRef.current + 1;
     setIndex(indexRef.current);
 
     const nextSequence = getSequence(
@@ -145,24 +162,6 @@ const HomePage = () => {
         0.01,
         time
       );
-    }
-  };
-
-  const initSynth = () => {
-    if (!synth.current) {
-      synth.current = new Tone.MonoSynth({
-        oscillator: {
-          type: "sawtooth",
-        },
-        envelope: {
-          attack: 0.005,
-          release: 0.6,
-        },
-        filterEnvelope: {
-          attack: 0,
-          release: 0.8,
-        },
-      }).toDestination();
     }
   };
 
@@ -189,7 +188,7 @@ const HomePage = () => {
   };
 
   const handlePlayToggleClick = () => {
-    initSynth();
+    initializeSynth(synth);
     initClock();
 
     setIsPlaying((prev) => !prev);

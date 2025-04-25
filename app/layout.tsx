@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
-import { ThemeProvider } from "@/components/ThemeProvider";
-
 import "./globals.css";
+
+import type { Metadata } from "next";
+
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "Euclidian Melodies",

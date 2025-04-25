@@ -1,9 +1,9 @@
 import { useState } from "react";
 
 import {
+  formatPattern,
   getEuclidianPattern,
   rotatePattern,
-  formatPattern,
 } from "@/lib/euclidian";
 
 const useEuclidianPattern = ({
