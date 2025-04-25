@@ -1,113 +1,40 @@
 "use client";
-import {
-  Pause as PauseIcon,
-  Play as PlayIcon,
-  RotateCcw as ResetIcon,
-} from "lucide-react";
+
 import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
 import * as Tone from "tone";
 
-import {
-  EuclidianRhythmHitsControls,
-  EuclidianRhythmRotationControls,
-  EuclidianRhythmStepsControls,
-} from "@/components/EuclidianRhythm/EuclidianRhythmControls";
 import EuclidianRhythmVisualizer from "@/components/EuclidianRhythm/EuclidianRhythmVisualizer";
-import SequenceVisualizer from "@/components/Sequence/SequenceVisualizer";
-import { Button } from "@/components/UI/Button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/UI/Select";
+  PatternHitsControls,
+  PatternNoteControls,
+  PatternOctaveControls,
+  PatternRotationControls,
+  PatternStepsControls,
+} from "@/components/Pattern/PatternControls";
+import SequencerNoteControls from "@/components/Sequencer/SequencerNoteControls";
+import SequencerTransportControls from "@/components/Sequencer/SequencerTransportControls";
+import SequenceVisualizer from "@/components/Sequencer/SequenceVisualizer";
+import { Button } from "@/components/UI/Button";
 import { Separator } from "@/components/UI/Separator";
-import { Slider } from "@/components/UI/Slider";
 import useEuclidianPattern from "@/hooks/useEuclidianPattern";
 import useNote from "@/hooks/useNote";
 import { getNoteName } from "@/lib/note";
 import { scales } from "@/lib/scale";
-import { getSequence } from "@/lib/sequencer";
-import { initializeSynth } from "@/lib/synth";
+import { getSequence, SequencerPlaybackDirection } from "@/lib/sequencer";
+import { createMonoSynth, playNote } from "@/lib/synth";
 
-type SequencerPlaybackDirection = "forward" | "backward";
-
-const NoteControls: React.FC<{
-  value: number;
-  index?: number;
-  onChange: ReturnType<typeof useNote>["handleNoteChange"];
-  className?: string;
-}> = ({ value, index = 0, onChange, className }) => (
-  <div className={className}>
-    <div className="flex justify-between">
-      <label htmlFor={`note${index}`}>Note </label>
-      <span>{value}</span>
-    </div>
-    <Slider
-      id={`note${index}`}
-      name={`note${index}`}
-      min={0}
-      max={11}
-      value={[value]}
-      onValueChange={([v]) => {
-        onChange(v);
-      }}
-      className="mt-2"
-    />
-  </div>
-);
-
-const OctaveControls: React.FC<{
-  value: number;
-  index?: number;
-  onChange: ReturnType<typeof useNote>["handleOctaveChange"];
-  className?: string;
-}> = ({ value, index = 0, onChange, className }) => (
-  <div className={className}>
-    <div className="flex justify-between">
-      <label htmlFor={`octave${index}`}>Octave </label>
-      <span>{value}</span>
-    </div>
-    <Slider
-      id={`octave${index}`}
-      name={`octave${index}`}
-      min={0}
-      max={2}
-      value={[value]}
-      onValueChange={([v]) => {
-        onChange(v);
-      }}
-      className="mt-2"
-    />
-  </div>
-);
-
-const ScaleSelect: React.FC<{
-  value: string;
-  index?: number;
-  onChange: (nextScale: keyof typeof scales) => void;
-  className?: string;
-}> = ({ value, index = 0, onChange, className }) => (
-  <div className={className}>
-    <label htmlFor={`scale${index}`}>Scale: {value}</label>
-    <br />
-    <Select>
-      <SelectTrigger className="">
-        <SelectValue placeholder="Select" />
-      </SelectTrigger>
-      <SelectContent>
-        {Object.keys(scales).map((key) => (
-          <SelectItem key={key} value={key}>
-            {key}
-          </SelectItem>
-        ))}
-        {/* <SelectItem value="light">Light</SelectItem>
-    <SelectItem value="dark">Dark</SelectItem>
-    <SelectItem value="system">System</SelectItem> */}
-      </SelectContent>
-    </Select>
+const PageHeader: React.FC = () => (
+  <div className="w-full flex justify-between">
+    <h1 className="text-4xl">Euclidian Melodies</h1>
+    <nav className="flex items-center">
+      <Button variant="outline" className="mr-2" asChild>
+        <Link href="/">Learn</Link>
+      </Button>
+      <Button variant="outline" asChild>
+        <Link href="/">Explore</Link>
+      </Button>
+    </nav>
   </div>
 );
 
@@ -125,6 +52,7 @@ const HomePage = () => {
     useNote({}),
   ];
 
+  const [root, setRoot] = useState(0);
   const [scale, setScale] = useState<keyof typeof scales>("Chromatic");
 
   const [isPlaying, setIsPlaying] = useState(false);
@@ -135,7 +63,13 @@ const HomePage = () => {
   const clock = useRef<Tone.Clock | null>(null);
   const synth = useRef<Tone.MonoSynth | null>(null);
 
-  const sequence = getSequence(patterns, notes, scales[scale].notes, index);
+  const sequence = getSequence(
+    patterns,
+    notes,
+    scales[scale].notes,
+    index,
+    root
+  );
 
   const advanceSequencer = useRef<(time: number) => void>(() => {});
   advanceSequencer.current = (
@@ -152,27 +86,32 @@ const HomePage = () => {
       patterns,
       notes,
       scales[scale].notes,
-      indexRef.current > -1 ? indexRef.current : 0
+      indexRef.current > -1 ? indexRef.current : 0,
+      root
     );
     const note = nextSequence[0];
     const noteName = getNoteName(note);
     const octave = Math.floor(note / 12);
 
     if (synth.current) {
-      synth.current.triggerAttackRelease(
-        `${noteName}${4 + octave}`,
-        0.01,
-        time
-      );
+      playNote(synth.current, noteName, octave, time);
     }
   };
 
-  const initClock = () => {
+  const initializeClock = () => {
     if (!clock.current) {
       clock.current = new Tone.Clock(
         (time) => advanceSequencer.current(time),
         4
       );
+    }
+  };
+
+  const initializeSynth = (
+    synthRef: React.RefObject<Tone.MonoSynth | null>
+  ) => {
+    if (!synthRef.current) {
+      synthRef.current = createMonoSynth();
     }
   };
 
@@ -190,25 +129,15 @@ const HomePage = () => {
   };
 
   const handlePlayToggleClick = () => {
+    initializeClock();
     initializeSynth(synth);
-    initClock();
 
     setIsPlaying((prev) => !prev);
   };
 
   return (
     <div className="w-full max-w-5xl px-8 mx-auto mt-12">
-      <div className="w-full flex justify-between">
-        <h1 className="text-4xl">Euclidian Melodies</h1>
-        <nav className="flex items-center">
-          <Button variant="outline" className="mr-2" asChild>
-            <Link href="/">Learn</Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href="/">Playground</Link>
-          </Button>
-        </nav>
-      </div>
+      <PageHeader />
       <Separator className="mt-6" />
       <div className="flex w-full space-x-12 mt-6">
         {patterns.map(
@@ -233,20 +162,20 @@ const HomePage = () => {
                   index={index}
                   className="mt-6"
                 />
-                <EuclidianRhythmStepsControls
+                <PatternStepsControls
                   value={steps}
                   index={i}
                   onChange={handleStepsChange}
                   className="mt-6"
                 />
-                <EuclidianRhythmHitsControls
+                <PatternHitsControls
                   value={hits}
                   steps={steps}
                   index={i}
                   onChange={handleHitsChange}
                   className="mt-6"
                 />
-                <EuclidianRhythmRotationControls
+                <PatternRotationControls
                   value={rotation}
                   steps={steps}
                   index={i}
@@ -263,13 +192,13 @@ const HomePage = () => {
           ({ note, octave, handleNoteChange, handleOctaveChange }, i) => {
             return (
               <div key={i} className="w-full">
-                <NoteControls
+                <PatternNoteControls
                   value={note}
                   index={i}
                   onChange={handleNoteChange}
                   className="mt-6"
                 />
-                <OctaveControls
+                <PatternOctaveControls
                   value={octave}
                   index={i}
                   onChange={handleOctaveChange}
@@ -280,20 +209,23 @@ const HomePage = () => {
           }
         )}
       </div>
-      <ScaleSelect value={scale} onChange={setScale} />
-      <Button variant="outline" onClick={handlePlayToggleClick}>
-        {isPlaying ? <PauseIcon /> : <PlayIcon />}
-        {isPlaying ? "Stop" : "Play"}
-      </Button>
-      <Button variant="outline" className="ml-2" onClick={handleResetClick}>
-        <ResetIcon />
-        Reset
-      </Button>
+      <div className="flex justify-between items-center mt-12">
+        <SequencerTransportControls
+          isPlaying={isPlaying}
+          onPlayToggle={handlePlayToggleClick}
+          onReset={handleResetClick}
+        />
+        <SequencerNoteControls
+          onRootNoteChange={setRoot}
+          onScaleChange={setScale}
+        />
+      </div>
       <SequenceVisualizer
         sequence={sequence}
         notes={notes}
         index={index}
-        className="mt-8"
+        root={root}
+        className="my-6"
       />
     </div>
   );

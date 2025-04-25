@@ -4,12 +4,21 @@ import useNote from "@/hooks/useNote";
 import { getNoteName } from "@/lib/note";
 import { cn } from "@/lib/utils";
 
-const SequenceVisualizer: React.FC<{
+export type SequenceVisualizerProps = {
   sequence: number[];
   notes: ReturnType<typeof useNote>[];
   index?: number;
+  root?: number;
   className?: string;
-}> = ({ sequence, notes, index = 0, className }) => {
+};
+
+const SequenceVisualizer: React.FC<SequenceVisualizerProps> = ({
+  sequence,
+  notes,
+  index = 0,
+  root = 0,
+  className,
+}) => {
   const sequenceHeight =
     Math.floor(
       notes.reduce((height, { note, octave }) => {
@@ -59,7 +68,9 @@ const SequenceVisualizer: React.FC<{
             }`}
             style={{
               height: `${sequenceHeight}px`,
-              transform: `scaleY(${(1 / (totalOctaves * 12)) * (n + 1)})`,
+              transform: `scaleY(${
+                (1 / (totalOctaves * 12)) * (n - root + 1)
+              })`,
             }}
           />
         ))}

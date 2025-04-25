@@ -1,4 +1,3 @@
-import React from "react";
 import * as Tone from "tone";
 import { RecursivePartial } from "tone/build/esm/core/util/Interface";
 
@@ -16,12 +15,14 @@ const monoSynthConfiguration: RecursivePartial<Tone.MonoSynthOptions> = {
   },
 };
 
-export const initializeSynth = (
-  synthRef: React.RefObject<Tone.MonoSynth | null>
+export const createMonoSynth = () =>
+  new Tone.MonoSynth(monoSynthConfiguration).toDestination();
+
+export const playNote = (
+  synth: Tone.MonoSynth,
+  noteName: string,
+  octave: number,
+  time?: number
 ) => {
-  if (!synthRef.current) {
-    synthRef.current = new Tone.MonoSynth(
-      monoSynthConfiguration
-    ).toDestination();
-  }
+  synth.triggerAttackRelease(`${noteName}${4 + octave}`, 0.01, time);
 };

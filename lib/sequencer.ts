@@ -2,11 +2,14 @@ import useEuclidianPattern from "@/hooks/useEuclidianPattern";
 import useNote from "@/hooks/useNote";
 import { findNearestNoteInScale } from "@/lib/note";
 
+export type SequencerPlaybackDirection = "forward" | "backward";
+
 export const getSequence = (
   patterns: ReturnType<typeof useEuclidianPattern>[],
   notes: ReturnType<typeof useNote>[],
   scale: number[],
   index: number,
+  root = 0,
   length = 16
 ) =>
   Array(length)
@@ -23,4 +26,4 @@ export const getSequence = (
         })
         .reduce((acc, step) => acc + step, 0)
     )
-    .map((step) => findNearestNoteInScale(step, scale));
+    .map((step) => findNearestNoteInScale(step, scale) + root);

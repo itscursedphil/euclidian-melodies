@@ -2,11 +2,17 @@ import React from "react";
 
 import { cn } from "@/lib/utils";
 
-const EuclidianRhythmVisualizer: React.FC<{
+export type EuclidianRhythmVisualizerProps = {
   pattern: number[];
   index?: number;
   className?: string;
-}> = ({ pattern, index = -1, className }) => {
+};
+
+const EuclidianRhythmVisualizer: React.FC<EuclidianRhythmVisualizerProps> = ({
+  pattern,
+  index = -1,
+  className,
+}) => {
   return (
     <div className={cn("w-full aspect-square relative -rotate-90", className)}>
       {/* <div className="absolute top-[4%] right-[4%] bottom-[4%] left-[4%] border-1 rounded-full" /> */}
